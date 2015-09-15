@@ -17,3 +17,4 @@ Jona
 Jose
 -------
 https://www.google.com/design/spec/components/progress-activity.html#progress-activity-behavior
+https://platzi.com/blog/material-design-android/
