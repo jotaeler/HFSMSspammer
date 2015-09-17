@@ -16,21 +16,21 @@ Jona
 
 Jose
 -------
-//Contactos
-http://developer.android.com/training/building-userinfo.html
-
-//Interface
-http://developer.android.com/training/best-ui.html
-
-//Barras de progreso
-https://www.google.com/design/spec/components/progress-activity.html#progress-activity-behavior
-
-//Material design
-https://platzi.com/blog/material-design-android/
-http://www.materialpalette.com/blue-grey/cyan
-
-//Conexiones de red
-http://developer.android.com/training/basics/network-ops/connecting.html
-
-//Cache
-http://developer.android.com/training/efficient-downloads/redundant_redundant.html
+//Contactos <br>
+http://developer.android.com/training/building-userinfo.html <br>
+<br>
+//Interface <br>
+http://developer.android.com/training/best-ui.html <br>
+<br>
+//Barras de progreso <br>
+https://www.google.com/design/spec/components/progress-activity.html#progress-activity-behavior <br>
+<br>
+//Material design <br>
+https://platzi.com/blog/material-design-android/ <br>
+http://www.materialpalette.com/blue-grey/cyan <br>
+<br>
+//Conexiones de red <br>
+http://developer.android.com/training/basics/network-ops/connecting.html <br>
+<br>
+//Cache <br>
+http://developer.android.com/training/efficient-downloads/redundant_redundant.html <br>
