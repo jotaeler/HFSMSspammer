@@ -3,6 +3,7 @@ package com.spacebartech.hfsmsspammer;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +23,7 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
 
 public class MainActivity extends AppCompatActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
@@ -51,19 +53,24 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
     }
 
     public void accesoAgenda(){
-        ContentResolver contenedorContactos = getContentResolver();
-        Cursor i = contenedorContactos.query(Contacts.CONTENT_URI,null,null,null,null,null);
 
-        if (i.getCount() > 0) {
-            while (i.moveToNext()) {
+        Uri uri = Contacts.CONTENT_URI;
+        Cursor cursor = getContentResolver().query(uri,null,null, null, null);
 
-                String id = i.getString(i.getColumnIndex(Contacts.HAS_PHONE_NUMBER));
-                String nombre = i.getString(i.getColumnIndex(Contacts.DISPLAY_NAME));
+        if (cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+
+                String id = cursor.getString(cursor.getColumnIndex(Contacts.HAS_PHONE_NUMBER));
+                String nombre = cursor.getString(cursor.getColumnIndex(Contacts.DISPLAY_NAME));
                 Log.d("Numero: ",id);
                 Log.d("Nombre: ",nombre);
             }
 
         }
+
+
+
+
 
 
     }
