@@ -4,7 +4,7 @@ Aquí vamos a poner los enlaces o documentación que nos vayan haciendo falta o 
 
 Ismael
 ------
-Prueba de subida al directorio de jose
+
 
 
 
