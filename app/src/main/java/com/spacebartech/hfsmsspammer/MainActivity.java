@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import android.support.v7.app.AppCompatActivity;
@@ -26,7 +27,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -37,12 +40,14 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.MalformedInputException;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -50,6 +55,9 @@ public class MainActivity extends AppCompatActivity{
     //private NavigationDrawerFragment mNavigationDrawerFragment;
 
     private CharSequence mTitle;
+    //Lista de telefonos
+    private List phones;
+    private InputStream is;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,28 +73,34 @@ public class MainActivity extends AppCompatActivity{
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer,(DrawerLayout) findViewById(R.id.drawer_layout));
 */
-        accesoAgenda();
+        //accesoAgenda();
+        final Button button = (Button) findViewById(R.id.buttonWeb);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                getWebNumbers();
+            }
+        });
         setToolbar();
     }
 
-    public void setToolbar(){
+    public void setToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.activity_my_toolbar);
         toolbar.setTitle("HFSMSspammer");
         setSupportActionBar(toolbar);
     }
 
-    public void accesoAgenda(){
+    public void accesoAgenda() {
 
         Uri uri = Contacts.CONTENT_URI;
-        Cursor cursor = getContentResolver().query(uri,null,null, null, null);
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
 
         if (cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
 
                 String id = cursor.getString(cursor.getColumnIndex(Contacts.HAS_PHONE_NUMBER));
                 String nombre = cursor.getString(cursor.getColumnIndex(Contacts.DISPLAY_NAME));
-                Log.d("Numero: ",id);
-                Log.d("Nombre: ",nombre);
+                Log.d("Numero: ", id);
+                Log.d("Nombre: ", nombre);
             }
 
         }
@@ -173,15 +187,33 @@ public class MainActivity extends AppCompatActivity{
         }*/
     }
 
-    ////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////
     /*
     Metodos para conexion a la web y descargar
-    los numeros de telefono
+    los numeros de teléfono
      */
-    ////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void getWebNumbers() {
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+
+        if (this.checkConnection()) {
+            Toast toast = Toast.makeText(context, "conectado", duration);
+            toast.show();
+
+            //InputStream is = this.downloadUrl("http://www.camarahogarfactory.com/listado/listado.xml");
+            new DownloadWebpageTask().execute("http://www.camarahogarfactory.com/listado/listado.xml");
+
+        } else {
+            Toast toast = Toast.makeText(context, "NO conectado", duration);
+            toast.show();
+        }
+    }
 
     /**
      * Check internet connectivity
+     *
      * @return true if connected
      */
     public boolean checkConnection() {
@@ -190,6 +222,7 @@ public class MainActivity extends AppCompatActivity{
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
+
             return true;
         } else {
             return false;
@@ -197,10 +230,47 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
+    // Uses AsyncTask to create a task away from the main UI thread. This task takes a
+    // URL string and uses it to create an HttpUrlConnection. Once the connection
+    // has been established, the AsyncTask downloads the contents of the webpage as
+    // an InputStream. Finally, the InputStream is converted into a string, which is
+    // displayed in the UI by the AsyncTask's onPostExecute method.
+    private class DownloadWebpageTask extends AsyncTask<String, Void, InputStream> {
+
+        @Override
+        protected InputStream doInBackground(String... _url) {
+
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                return downloadUrl(_url[0]);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(InputStream result) {
+            try {
+                Context context = getApplicationContext();
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, "onPostExecute", duration);
+                toast.show();
+                List lista=parse(result);
+                phones.addAll(lista);
+                toast=Toast.makeText(context,phones.size(),duration);
+
+            }catch (XmlPullParserException|IOException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     // Given a URL, establishes an HttpUrlConnection and retrieves
     // the web page content as a InputStream, which it returns as
     // a string.
-    private String downloadUrl(String myurl) throws IOException {
+    private InputStream downloadUrl(String myurl) throws IOException {
         InputStream is = null;
         // Only display the first 500 characters of the retrieved
         // web page content.
@@ -209,8 +279,8 @@ public class MainActivity extends AppCompatActivity{
         try {
             URL url = new URL(myurl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000 /* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
+            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(15000);
             conn.setRequestMethod("GET");
             conn.setDoInput(true);
             // Starts the query
@@ -220,8 +290,8 @@ public class MainActivity extends AppCompatActivity{
             is = conn.getInputStream();
 
             // Convert the InputStream into a string
-            String contentAsString = readIt(is, len);
-            return contentAsString;
+            //String contentAsString = readIt(is, len);
+            return is;
 
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
@@ -233,27 +303,33 @@ public class MainActivity extends AppCompatActivity{
     }
 
     // Reads an InputStream and converts it to a String.
-    public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
+   /* public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
         Reader reader = null;
         reader = new InputStreamReader(stream, "UTF-8");
         char[] buffer = new char[len];
         reader.read(buffer);
         return new String(buffer);
-    }
+    }*/
 
     /**
      * Recibe un InputStream y devuelve la lista con el contenido
+     *
      * @param in
      * @return
      * @throws XmlPullParserException
      * @throws IOException
      */
     public List parse(InputStream in) throws XmlPullParserException, IOException {
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, "parse", duration);
+        toast.show();
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
+
             return readFeed(parser);
         } finally {
             in.close();
@@ -261,8 +337,11 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
-        List phones = new ArrayList();
-
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, "readFeed", duration);
+        toast.show();
+        List r = new ArrayList();
         //parser.require(XmlPullParser.START_TAG, ns, "feed");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -270,13 +349,17 @@ public class MainActivity extends AppCompatActivity{
             }
             String name = parser.getName();
             // Starts by looking for the entry tag
-            if (name.equals("entry")) {
-                //phones.add(readEntry(parser));
+            if (name.equals("phone")) {
+                if (parser.next() == XmlPullParser.TEXT) {
+                    r.add(parser.getText());
+                    parser.nextTag();
+                }
             } /*else {
                 skip(parser);
             }*/
         }
-        return phones;
+        return r;
     }
+
 
 }
