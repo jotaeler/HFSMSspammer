@@ -74,10 +74,16 @@ public class MainActivity extends AppCompatActivity {
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer,(DrawerLayout) findViewById(R.id.drawer_layout));
 */
         //accesoAgenda();
-        final Button button = (Button) findViewById(R.id.buttonWeb);
-        button.setOnClickListener(new View.OnClickListener() {
+        final Button web = (Button) findViewById(R.id.buttonWeb);
+        web.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 getWebNumbers();
+            }
+        });
+        final Button agenda = (Button) findViewById(R.id.buttonContactos);
+        agenda.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                accesoAgenda();
             }
         });
         setToolbar();
@@ -90,7 +96,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void accesoAgenda() {
-
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, "accesoAgenda", duration);
+        toast.show();
         Uri uri = Contacts.CONTENT_URI;
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
 
