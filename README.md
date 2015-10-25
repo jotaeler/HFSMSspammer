@@ -4,10 +4,12 @@ Aquí vamos a poner los enlaces o documentación que nos vayan haciendo falta o 
 
 Ismael
 ------
-Coger contactos de la agenda
+Coger contactos de la agenda <br>
 https://groups.google.com/forum/#!topic/desarrolladores-android/9xHZJr_FjiQ
-Layoud para contactos
+<br>
+Layoud para contactos<br>
 http://francho.org/2011/01/11/android-usando-contactscontract-para-sacar-el-listado-de-telefonos-de-la-ageda/
+<br>
 
 
 
