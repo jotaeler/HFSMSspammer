@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         });
         setToolbar();
     }
-    public void adkfgasukldfhsjaklfhsf(){
+    public void uuuuuuuuuuuuuuuu(){
 
     }
     public void setToolbar() {
