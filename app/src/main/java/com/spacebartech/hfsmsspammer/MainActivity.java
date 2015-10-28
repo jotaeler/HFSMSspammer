@@ -88,7 +88,9 @@ public class MainActivity extends AppCompatActivity {
         });
         setToolbar();
     }
-
+    public void prueba(){
+        
+    }
     public void setToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.activity_my_toolbar);
         toolbar.setTitle("HFSMSspammer");
