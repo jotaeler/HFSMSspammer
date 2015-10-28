@@ -88,8 +88,8 @@ public class MainActivity extends AppCompatActivity {
         });
         setToolbar();
     }
-    public void prueba(){
-        
+    public void adkfgasukldfhsjaklfhsf(){
+
     }
     public void setToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.activity_my_toolbar);
