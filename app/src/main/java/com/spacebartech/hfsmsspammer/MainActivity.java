@@ -1,34 +1,21 @@
 package com.spacebartech.hfsmsspammer;
 
-import android.app.Activity;
-import android.content.ContentResolver;
-import android.database.Cursor;
+import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.provider.ContactsContract;
-import android.provider.ContactsContract.Contacts;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.Xml;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v4.widget.DrawerLayout;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -36,13 +23,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.MalformedInputException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,11 +41,12 @@ public class MainActivity extends AppCompatActivity {
     private List phones;
     private InputStream is;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //setContentView(R.layout.activity_main);
 
 
         /*mNavigationDrawerFragment = (NavigationDrawerFragment)
@@ -73,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer,(DrawerLayout) findViewById(R.id.drawer_layout));
 */
-        //accesoAgenda();
         final Button web = (Button) findViewById(R.id.buttonWeb);
         web.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -81,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         final Button agenda = (Button) findViewById(R.id.buttonContactos);
+
         agenda.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 accesoAgenda();
@@ -98,6 +81,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void accesoAgenda() {
+        Intent i = new Intent(this, mostrarContactos.class );
+        startActivity(i);
+
+    }
+        /*
+
         Context context = getApplicationContext();
         int duration = Toast.LENGTH_SHORT;
         Toast toast = Toast.makeText(context, "accesoAgenda", duration);
@@ -110,12 +99,17 @@ public class MainActivity extends AppCompatActivity {
 
                 String id = cursor.getString(cursor.getColumnIndex(Contacts.HAS_PHONE_NUMBER));
                 String nombre = cursor.getString(cursor.getColumnIndex(Contacts.DISPLAY_NAME));
-                Log.d("Numero: ", id);
-                Log.d("Nombre: ", nombre);
+
+                //comprobamos si el contacto tiene numero; si es 0 no tiene y no lo muestra
+                if(id.compareTo("0")==1){
+                    Log.d("Numero: ", id);
+                    Log.d("Nombre: ", nombre);
+                }
+
             }
 
         }
-    }
+        ​​​
 
 
 

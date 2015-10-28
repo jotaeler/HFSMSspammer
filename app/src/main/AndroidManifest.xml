@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".LeerUsuarios">
+        <activity android:name=".mostrarContactos">
 
         </activity>
     </application>
