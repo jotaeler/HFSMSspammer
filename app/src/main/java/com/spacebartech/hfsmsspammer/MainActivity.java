@@ -1,5 +1,10 @@
 package com.spacebartech.hfsmsspammer;
 
+
+import android.util.Log;
+
+import java.io.InputStreamReader;
+import java.io.Reader;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -47,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        phones=new ArrayList();
 
         /*mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -60,6 +65,10 @@ public class MainActivity extends AppCompatActivity {
         web.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 getWebNumbers();
+
+                /*Context context = getApplicationContext();
+                Toast toast = Toast.makeText(context, phones.size(), Toast.LENGTH_SHORT);
+                toast.show();*/
             }
         });
         final Button agenda = (Button) findViewById(R.id.buttonContactos);
@@ -71,9 +80,7 @@ public class MainActivity extends AppCompatActivity {
         });
         setToolbar();
     }
-    public void uuuuuuuuuuuuuuuu(){
 
-    }
     public void setToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.activity_my_toolbar);
         toolbar.setTitle("HFSMSspammer");
@@ -200,19 +207,12 @@ public class MainActivity extends AppCompatActivity {
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     public void getWebNumbers() {
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
 
         if (this.checkConnection()) {
-            Toast toast = Toast.makeText(context, "conectado", duration);
-            toast.show();
 
             //InputStream is = this.downloadUrl("http://www.camarahogarfactory.com/listado/listado.xml");
-            new DownloadWebpageTask().execute("http://www.camarahogarfactory.com/listado/listado.xml");
+            new DownloadWebpageTask().execute("http://www.camarahogarfactory.com/listado/listado2.xml");
 
-        } else {
-            Toast toast = Toast.makeText(context, "NO conectado", duration);
-            toast.show();
         }
     }
 
@@ -242,13 +242,21 @@ public class MainActivity extends AppCompatActivity {
     // displayed in the UI by the AsyncTask's onPostExecute method.
     private class DownloadWebpageTask extends AsyncTask<String, Void, InputStream> {
 
+        private Exception e=null;
+
         @Override
         protected InputStream doInBackground(String... _url) {
 
             // params comes from the execute() call: params[0] is the url.
             try {
-                return downloadUrl(_url[0]);
-            } catch (IOException e) {
+                InputStream is=downloadUrl(_url[0]);
+                //String contentAsString = readIt(is, 200);
+                //int t=0;
+                List lista=parse(is);
+                phones.addAll(lista);
+                return is;
+            } catch (XmlPullParserException|IOException _e) {
+                e=_e;
                 return null;
             }
         }
@@ -256,18 +264,8 @@ public class MainActivity extends AppCompatActivity {
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(InputStream result) {
-            try {
-                Context context = getApplicationContext();
-                int duration = Toast.LENGTH_SHORT;
-                Toast toast = Toast.makeText(context, "onPostExecute", duration);
-                toast.show();
-                List lista=parse(result);
-                phones.addAll(lista);
-                toast=Toast.makeText(context,phones.size(),duration);
-
-            }catch (XmlPullParserException|IOException e){
-                e.printStackTrace();
-            }
+            Log.d("Cargados ", Integer.toString(phones.size()));
+            if(e!=null)  e.printStackTrace();
         }
     }
 
@@ -279,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
         InputStream is = null;
         // Only display the first 500 characters of the retrieved
         // web page content.
-        int len = 500;
+        int len = 200;
 
         try {
             URL url = new URL(myurl);
@@ -290,31 +288,18 @@ public class MainActivity extends AppCompatActivity {
             conn.setDoInput(true);
             // Starts the query
             conn.connect();
-            int response = conn.getResponseCode();
-            //Log.d(DEBUG_TAG, "The response is: " + response);
             is = conn.getInputStream();
 
-            // Convert the InputStream into a string
-            //String contentAsString = readIt(is, len);
             return is;
 
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
         } finally {
-            if (is != null) {
+            /*if (is != null) {
                 is.close();
-            }
+            }*/
         }
     }
-
-    // Reads an InputStream and converts it to a String.
-   /* public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
-        Reader reader = null;
-        reader = new InputStreamReader(stream, "UTF-8");
-        char[] buffer = new char[len];
-        reader.read(buffer);
-        return new String(buffer);
-    }*/
 
     /**
      * Recibe un InputStream y devuelve la lista con el contenido
@@ -325,29 +310,36 @@ public class MainActivity extends AppCompatActivity {
      * @throws IOException
      */
     public List parse(InputStream in) throws XmlPullParserException, IOException {
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, "parse", duration);
-        toast.show();
+
+        List r=null;
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(in, null);
+            Reader reader=new InputStreamReader(in, "UTF-8");
+            parser.setInput(reader);
             parser.nextTag();
+            /*String name = parser.getName();
+            String asd=parser.getText();*/
 
-            return readFeed(parser);
-        } finally {
+            r=readFeed(parser);
+
+        }finally {
             in.close();
         }
+        return r;
     }
 
+    /**
+     * Recive el Parser y extrae todas las entradas PHONE que hay, devuelve la lista de numeros
+     * @param parser
+     * @return
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, "readFeed", duration);
-        toast.show();
+
+        parser.require(XmlPullParser.START_TAG,null,"xml");
         List r = new ArrayList();
-        //parser.require(XmlPullParser.START_TAG, ns, "feed");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -359,9 +351,7 @@ public class MainActivity extends AppCompatActivity {
                     r.add(parser.getText());
                     parser.nextTag();
                 }
-            } /*else {
-                skip(parser);
-            }*/
+            }
         }
         return r;
     }
