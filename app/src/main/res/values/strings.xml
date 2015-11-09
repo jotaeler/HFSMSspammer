@@ -8,6 +8,10 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <string name="dialog_title_caracteres">160 Caracteres superados</string>
+    <string name="dialog_text_caracteres">Los SMS tienen una longitud máxima de 160 caracteres, si supera esta cantidad el texto se enviará como 2 SMS</string>
+    <string name="ok">De acuerdo</string>
+
     <string name="action_example">Example action</string>
 
     <string name="action_settings">Settings</string>

@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0/X CONTACTOS SELECCIONADOS"
+            android:text="0 Contactos seleccionados"
             android:id="@+id/contactosSeleccionados"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
@@ -95,7 +95,7 @@
         android:layout_height="195dp"
         android:inputType="textMultiLine"
         android:ems="10"
-        android:id="@+id/editText"
+        android:id="@+id/mensaje"
         android:layout_x="24dp"
         android:layout_y="316dp"
         android:textColor="#010101" />
@@ -103,8 +103,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0/140"
-        android:id="@+id/textView"
+        android:text="0/160"
+        android:id="@+id/caracteres"
         android:layout_x="293dp"
         android:layout_y="517dp"
         android:textColor="#010101" />

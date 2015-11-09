@@ -1,10 +1,15 @@
 package com.spacebartech.hfsmsspammer;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -21,8 +26,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.app.ProgressDialog;
 
+import org.w3c.dom.Text;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -45,14 +54,55 @@ public class MainActivity extends AppCompatActivity {
     //Lista de telefonos
     private List phones;
     private InputStream is;
-
-
+    private ProgressDialog pd;
+    private boolean web=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        phones=new ArrayList();
+        phones = new ArrayList();
+
+        final EditText mensaje = (EditText) findViewById(R.id.mensaje);
+        final TextView caracteres = (TextView) findViewById(R.id.caracteres);
+        TextWatcher editable = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                if(count!=1) {
+                    if (mensaje.getText().length()+after > 160 && mensaje.getText().length()+after < 162) {
+
+                        // 1. Instantiate an AlertDialog.Builder with its constructor
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+                        // 2. Chain together various setter methods to set the dialog characteristics
+                        builder.setMessage(R.string.dialog_text_caracteres)
+                                .setTitle(R.string.dialog_title_caracteres);
+                        // Add the buttons
+                        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // User clicked OK button
+                            }
+                        });
+                        // 3. Get the AlertDialog from create()
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+
+                    }
+                }
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                caracteres.setText(mensaje.getText().length() + "/160");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        };
+        mensaje.addTextChangedListener(editable);
 
         /*mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -61,14 +111,19 @@ public class MainActivity extends AppCompatActivity {
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer,(DrawerLayout) findViewById(R.id.drawer_layout));
 */
-        final Button web = (Button) findViewById(R.id.buttonWeb);
-        web.setOnClickListener(new View.OnClickListener() {
+        final Button botonWeb = (Button) findViewById(R.id.buttonWeb);
+        botonWeb.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                getWebNumbers();
+                if (!web) {
+                    getWebNumbers();
 
-                /*Context context = getApplicationContext();
-                Toast toast = Toast.makeText(context, phones.size(), Toast.LENGTH_SHORT);
-                toast.show();*/
+                }else{
+                    Context context = getApplicationContext();
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, "Ya se han descargado los contactos de la web", duration);
+                    toast.show();
+                }
+                web=true;
             }
         });
         final Button agenda = (Button) findViewById(R.id.buttonContactos);
@@ -88,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void accesoAgenda() {
-        Intent i = new Intent(this, mostrarContactos.class );
+        Intent i = new Intent(this, mostrarContactos.class);
         startActivity(i);
 
     }
@@ -211,8 +266,12 @@ public class MainActivity extends AppCompatActivity {
         if (this.checkConnection()) {
 
             //InputStream is = this.downloadUrl("http://www.camarahogarfactory.com/listado/listado.xml");
-            new DownloadWebpageTask().execute("http://www.camarahogarfactory.com/listado/listado2.xml");
+            new DownloadWebpageTask().execute("http://www.camarahogarfactory.com/listado/listado.xml");
 
+        }else{
+            Context context = getApplicationContext();
+            Toast toast = Toast.makeText(context, "No hay conexión a internet", Toast.LENGTH_SHORT);
+            toast.show();
         }
     }
 
@@ -242,21 +301,25 @@ public class MainActivity extends AppCompatActivity {
     // displayed in the UI by the AsyncTask's onPostExecute method.
     private class DownloadWebpageTask extends AsyncTask<String, Void, InputStream> {
 
-        private Exception e=null;
+        private Exception e = null;
+        @Override
+        protected void onPreExecute(){
+            pd=ProgressDialog.show(MainActivity.this, "Conectando con la web", "Por favor espere...");
+        }
 
         @Override
         protected InputStream doInBackground(String... _url) {
 
             // params comes from the execute() call: params[0] is the url.
             try {
-                InputStream is=downloadUrl(_url[0]);
+                InputStream is = downloadUrl(_url[0]);
                 //String contentAsString = readIt(is, 200);
                 //int t=0;
-                List lista=parse(is);
+                List lista = parse(is);
                 phones.addAll(lista);
                 return is;
-            } catch (XmlPullParserException|IOException _e) {
-                e=_e;
+            } catch (XmlPullParserException | IOException _e) {
+                e = _e;
                 return null;
             }
         }
@@ -264,8 +327,11 @@ public class MainActivity extends AppCompatActivity {
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(InputStream result) {
-            Log.d("Cargados ", Integer.toString(phones.size()));
-            if(e!=null)  e.printStackTrace();
+            TextView seleccionados = (TextView) findViewById(R.id.contactosSeleccionados);
+            String texto = Integer.toString(phones.size()) + " Contactos seleccionados";
+            seleccionados.setText(texto);
+            pd.dismiss();
+            if (e != null) e.printStackTrace();
         }
     }
 
@@ -311,19 +377,19 @@ public class MainActivity extends AppCompatActivity {
      */
     public List parse(InputStream in) throws XmlPullParserException, IOException {
 
-        List r=null;
+        List r = null;
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            Reader reader=new InputStreamReader(in, "UTF-8");
+            Reader reader = new InputStreamReader(in, "UTF-8");
             parser.setInput(reader);
             parser.nextTag();
             /*String name = parser.getName();
             String asd=parser.getText();*/
 
-            r=readFeed(parser);
+            r = readFeed(parser);
 
-        }finally {
+        } finally {
             in.close();
         }
         return r;
@@ -331,6 +397,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Recive el Parser y extrae todas las entradas PHONE que hay, devuelve la lista de numeros
+     *
      * @param parser
      * @return
      * @throws XmlPullParserException
@@ -338,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
 
-        parser.require(XmlPullParser.START_TAG,null,"xml");
+        parser.require(XmlPullParser.START_TAG, null, "xml");
         List r = new ArrayList();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {

@@ -41,3 +41,7 @@ http://developer.android.com/training/basics/network-ops/connecting.html <br>
 <br>
 //Cache <br>
 http://developer.android.com/training/efficient-downloads/redundant_redundant.html <br>
+<br>
+//SMS <br>
+http://stackoverflow.com/questions/4967448/send-sms-in-android
+http://developer.android.com/intl/es/reference/android/telephony/SmsManager.html
