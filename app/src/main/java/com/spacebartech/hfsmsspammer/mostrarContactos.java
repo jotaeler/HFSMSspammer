@@ -2,11 +2,15 @@ package com.spacebartech.hfsmsspammer;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class mostrarContactos extends AppCompatActivity {
     List<Fila> fila;
@@ -40,9 +44,9 @@ public class mostrarContactos extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                Toast.makeText(MainActivity.this,
+                /*Toast.makeText(MainActivity.this,
                         fila.get(position).getTitle(), Toast.LENGTH_SHORT)
-                        .show();
+                        .show();*/
             }
         });
     }
