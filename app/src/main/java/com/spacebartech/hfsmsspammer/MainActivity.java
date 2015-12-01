@@ -1,16 +1,11 @@
 package com.spacebartech.hfsmsspammer;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
-
-import java.io.InputStreamReader;
-import java.io.Reader;
-
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -19,6 +14,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Xml;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,21 +26,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.app.ProgressDialog;
 
-import org.w3c.dom.Text;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Serializable{
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -56,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private InputStream is;
     private ProgressDialog pd;
     private boolean web=false;
+    private ArrayList<String> listaNumerosAgenda;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,35 +143,32 @@ public class MainActivity extends AppCompatActivity {
 
     public void accesoAgenda() {
         Intent i = new Intent(this, mostrarContactos.class);
-        startActivity(i);
+        i.putExtra("listaNumerosAgenda", listaNumerosAgenda);
+        startActivityForResult(i, 1);
+    }
+
+    //METODO PARA RECOGER LOS CONTACTOS ELEGIDOS EN LA AGENDA
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch(requestCode) {
+            case (1) : {
+                if (resultCode == Activity.RESULT_OK) {
+                    listaNumerosAgenda = (ArrayList<String>) data.getExtras().getSerializable("listaNumerosAgenda");
+                    for(int i=0;i<listaNumerosAgenda.size();i++){
+                        phones.add(listaNumerosAgenda.get(i));
+
+                    }
+                    Toast.makeText(this, "Contactos de la Agenda Agregados", Toast.LENGTH_SHORT).show();
+                    TextView seleccionados = (TextView) findViewById(R.id.contactosSeleccionados);
+                    String texto = phones.size() + " Contactos seleccionados";
+                    seleccionados.setText(texto);
+                }
+                break;
+            }
+        }
 
     }
-        /*
-
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, "accesoAgenda", duration);
-        toast.show();
-        Uri uri = Contacts.CONTENT_URI;
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-
-        if (cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-
-                String id = cursor.getString(cursor.getColumnIndex(Contacts.HAS_PHONE_NUMBER));
-                String nombre = cursor.getString(cursor.getColumnIndex(Contacts.DISPLAY_NAME));
-
-                //comprobamos si el contacto tiene numero; si es 0 no tiene y no lo muestra
-                if(id.compareTo("0")==1){
-                    Log.d("Numero: ", id);
-                    Log.d("Nombre: ", nombre);
-                }
-
-            }
-
-        }
-        ​​​
-
 
 
     /*@Override
@@ -328,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(InputStream result) {
             TextView seleccionados = (TextView) findViewById(R.id.contactosSeleccionados);
-            String texto = Integer.toString(phones.size()) + " Contactos seleccionados";
+            String texto = phones.size() + " Contactos seleccionados";
             seleccionados.setText(texto);
             pd.dismiss();
             if (e != null) e.printStackTrace();

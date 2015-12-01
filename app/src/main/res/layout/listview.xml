@@ -1,18 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
 
-<ListView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@android:id/list"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/primary"
-    android:cacheColorHint="@android:color/transparent"
-    android:divider="@android:color/transparent"
-    android:dividerHeight="8dp"
-    android:scrollbarStyle="outsideOverlay"
-    android:paddingBottom="8dp" 
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp"
-    android:paddingTop="15dp" >
 
-</ListView>
+
+    <ListView
+        android:id="@+id/listview"
+        android:layout_width="fill_parent"
+        android:layout_height="500dp">
+    </ListView>
+
+    <LinearLayout
+        android:id="@+id/botones"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_aceptar"
+            android:text="Aceptar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:onClick="aceptar"/>
+
+        <Button
+            android:id="@+id/btn_cancelar"
+            android:text="Cancelar"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_toRightOf="@id/btn_aceptar"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="100dp"
+            android:onClick="cancelar"/>
+
+
+    </LinearLayout>
+
+
+
+</LinearLayout>
+
