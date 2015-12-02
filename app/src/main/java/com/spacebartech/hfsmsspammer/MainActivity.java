@@ -1,8 +1,16 @@
 package com.spacebartech.hfsmsspammer;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.DialogInterface;
+import android.content.IntentFilter;
+import android.net.Uri;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationCompatBase;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -30,8 +38,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.app.ProgressDialog;
+import android.telephony.SmsManager;
 
-import org.w3c.dom.Text;
+import com.getbase.floatingactionbutton.FloatingActionButton;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -52,10 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
     private CharSequence mTitle;
     //Lista de telefonos
-    private List phones;
+    private ArrayList<String> phones;
     private InputStream is;
     private ProgressDialog pd;
-    private boolean web=false;
+    private boolean web = false;
+    protected NotificationManager mNotifyManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-                if(count!=1) {
-                    if (mensaje.getText().length()+after > 160 && mensaje.getText().length()+after < 162) {
+                if (count != 1) {
+                    if (mensaje.getText().length() + after > 160 && mensaje.getText().length() + after < 162) {
 
                         // 1. Instantiate an AlertDialog.Builder with its constructor
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -117,13 +128,13 @@ public class MainActivity extends AppCompatActivity {
                 if (!web) {
                     getWebNumbers();
 
-                }else{
+                } else {
                     Context context = getApplicationContext();
                     int duration = Toast.LENGTH_SHORT;
                     Toast toast = Toast.makeText(context, "Ya se han descargado los contactos de la web", duration);
                     toast.show();
                 }
-                web=true;
+
             }
         });
         final Button agenda = (Button) findViewById(R.id.buttonContactos);
@@ -133,7 +144,37 @@ public class MainActivity extends AppCompatActivity {
                 accesoAgenda();
             }
         });
+
+        final FloatingActionButton enviar = (FloatingActionButton) findViewById(R.id.pink_icon);
+        enviar.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //new SendSMSTask().execute("5556", mensaje.getText().toString());
+
+                Intent SmsServiceIntent=new Intent(MainActivity.this, SmsService.class);
+                SmsServiceIntent.putStringArrayListExtra("phones", phones);
+                SmsServiceIntent.putExtra("mensaje", mensaje.getText().toString());
+
+
+                mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(MainActivity.this);
+                mBuilder.setContentTitle("Picture Download")
+                        .setContentText("Download in progress");
+                mBuilder.setProgress(100, 10, false);
+
+//Send the notification:
+                mNotifyManager.notify(1,mBuilder.build());
+                startService(SmsServiceIntent);
+
+            }
+        });
+
         setToolbar();
+    }
+    @Override
+    protected void onDestroy(){
+        stopService(new Intent(this,SmsService.class));
+        super.onDestroy();
+
     }
 
     public void setToolbar() {
@@ -258,17 +299,21 @@ public class MainActivity extends AppCompatActivity {
     /*
     Metodos para conexion a la web y descargar
     los numeros de teléfono
+
+    Librerias para revisar
+    otto
+    eventBus
      */
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     public void getWebNumbers() {
 
         if (this.checkConnection()) {
-
             //InputStream is = this.downloadUrl("http://www.camarahogarfactory.com/listado/listado.xml");
+            web = true;
             new DownloadWebpageTask().execute("http://www.camarahogarfactory.com/listado/listado.xml");
 
-        }else{
+        } else {
             Context context = getApplicationContext();
             Toast toast = Toast.makeText(context, "No hay conexión a internet", Toast.LENGTH_SHORT);
             toast.show();
@@ -302,9 +347,10 @@ public class MainActivity extends AppCompatActivity {
     private class DownloadWebpageTask extends AsyncTask<String, Void, InputStream> {
 
         private Exception e = null;
+
         @Override
-        protected void onPreExecute(){
-            pd=ProgressDialog.show(MainActivity.this, "Conectando con la web", "Por favor espere...");
+        protected void onPreExecute() {
+            pd = ProgressDialog.show(MainActivity.this, "Conectando con la web", "Por favor espere...");
         }
 
         @Override
@@ -315,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
                 InputStream is = downloadUrl(_url[0]);
                 //String contentAsString = readIt(is, 200);
                 //int t=0;
-                List lista = parse(is);
+                ArrayList<String> lista = parse(is);
                 phones.addAll(lista);
                 return is;
             } catch (XmlPullParserException | IOException _e) {
@@ -375,9 +421,9 @@ public class MainActivity extends AppCompatActivity {
      * @throws XmlPullParserException
      * @throws IOException
      */
-    public List parse(InputStream in) throws XmlPullParserException, IOException {
+    public ArrayList<String> parse(InputStream in) throws XmlPullParserException, IOException {
 
-        List r = null;
+        ArrayList<String> r = null;
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
@@ -403,10 +449,10 @@ public class MainActivity extends AppCompatActivity {
      * @throws XmlPullParserException
      * @throws IOException
      */
-    private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private ArrayList<String> readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
 
         parser.require(XmlPullParser.START_TAG, null, "xml");
-        List r = new ArrayList();
+        ArrayList<String> r = new ArrayList();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -423,5 +469,107 @@ public class MainActivity extends AppCompatActivity {
         return r;
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Metodos para enviar los sms
+     */
+    ////////////////////////////////////////////////////////////////////////////////////////
+
+    private class SendSMSTask extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... _url) {
+            sendSMS(_url[0], _url[1]);
+            return null;
+        }
+    }
+
+
+    public void sendSMS(String phoneNumber, String message) {
+        SmsManager smsManager = SmsManager.getDefault();
+
+        String SENT = "SMS_SENT";
+        String DELIVERED = "SMS_DELIVERED";
+
+        ArrayList<String> parts = smsManager.divideMessage(message);
+        int messageCount = parts.size();
+
+        Log.i("Message Count", "Message Count: " + messageCount);
+
+        ArrayList<PendingIntent> deliveryIntents = new ArrayList<PendingIntent>();
+        ArrayList<PendingIntent> sentIntents = new ArrayList<PendingIntent>();
+
+        PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
+        PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0, new Intent(DELIVERED), 0);
+
+        for (int j = 0; j < messageCount; j++) {
+            sentIntents.add(sentPI);
+            deliveryIntents.add(deliveredPI);
+        }
+
+        // ---when the SMS has been sent---
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context arg0, Intent arg1) {
+                /*switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(), "SMS sent",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                        Toast.makeText(getBaseContext(), "Generic failure",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_NO_SERVICE:
+                        Toast.makeText(getBaseContext(), "No service",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_NULL_PDU:
+                        Toast.makeText(getBaseContext(), "Null PDU",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_RADIO_OFF:
+                        Toast.makeText(getBaseContext(), "Radio off",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                }*/
+            }
+        }, new IntentFilter(SENT));
+
+        // ---when the SMS has been delivered---
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context arg0, Intent arg1) {
+                /*switch (getResultCode()) {
+
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(), "SMS delivered",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        Toast.makeText(getBaseContext(), "SMS not delivered",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                }*/
+            }
+        }, new IntentFilter(DELIVERED));
+        if (parts.size() < 2) {
+            for (int i = 0; i < 50; i++) {
+                try{
+                    Thread.sleep(5000);
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+                smsManager.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+            }
+            //smsManager.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+        } else {
+            Toast.makeText(getBaseContext(), parts.get(0),
+                    Toast.LENGTH_SHORT).show();
+            smsManager.sendMultipartTextMessage(phoneNumber, null, parts, sentIntents, deliveryIntents);
+        }
+
+
+    }
 
 }
